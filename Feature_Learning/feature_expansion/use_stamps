@@ -3,9 +3,6 @@
 import numpy as np
 
 
-from utils.eval_func_v4 import eval_func
-
-
 # frame inforamtion
 frameQuery = np.load('frameQuery.npy')
 frameTracklets  = np.load('frameGallery.npy')
