@@ -15,4 +15,4 @@ CUDA_VISIBLE_DEVICES=1 python3 tools/update.py --config_file='configs/softmax_tr
 ## Feature expansion
 This part consists of gallery expansion and query expansion.
 
-## If you have any question, please contact us by E-mail (dengwj16@gmail.com) or open a issue in this project. Thanks.
+## If you have any question, please contact us by E-mail (dengwj16@gmail.com) or open an issue in this project. Thanks.
