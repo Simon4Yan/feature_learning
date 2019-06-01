@@ -1,0 +1,113 @@
+# -*- coding: utf-8 -*-
+
+import numpy as np
+
+
+# frame inforamtion
+frameQuery = np.load('frameQuery.npy')
+frameTracklets  = np.load('frameGallery.npy')
+frameGallery = np.zeros([18290])
+
+
+# tracklet name with ID
+g_name = []
+f = open('test_track_id.txt', 'r')
+for k, line in enumerate(f):
+    print(k)
+    temp = list(map(int, line.split(' ')[:-1]))
+    if len(temp)==1:
+        continue
+    g_name.append(list(map(lambda x: x-1, temp)))
+    for indexTemp, idTemp in enumerate(temp):
+        frameGallery[idTemp-1] = frameTracklets[k]
+f.close
+
+
+
+# camera inforamation
+q_cams = np.load('q_cams.npy')
+g_cams = np.load('gallery_camera_inf.npy')
+
+dist = np.load('distmat.npy')
+
+
+distance1 = np.zeros(36)
+distance1[27-1] = 0
+distance1[28-1] = 28
+distance1[29-1] = 46
+distance1[33-1] = 60
+distance1[34-1] = 76
+distance1[35-1] = 84
+distance1[36-1] = 90
+
+
+distance2 = np.zeros(36)
+distance2[27-1] = 94
+distance2[28-1] = 42
+distance2[29-1] = 36
+distance2[33-1] = 25
+distance2[34-1] = 21
+distance2[35-1] = 13
+distance2[36-1] = 0
+
+framegaps = np.ones([36,36])*400
+framegaps[26,:]= 460
+framegaps[27,:]= 180
+framegaps[28,:]= 240
+framegaps[32,:]= 270
+framegaps[33,:]= 170
+framegaps[34,:]= 130
+framegaps[35,:]= 120
+
+def func_stamps(dist,  q_camids, g_camids, frameQuery, frameGallery, framegaps,
+                                   distance1, distance2, orisQuerys, orisGallerys, max_rank=50):
+    num_q, num_g = distmat.shape
+    newdist = np.zeros([num_q, num_g])
+    if num_g < max_rank:
+        max_rank = num_g
+        print("Note: number of gallery samples is quite small, got {}".format(num_g))
+    indices = np.argsort(distmat, axis=1)
+
+    for q_idx in range(num_q):
+        q_camid = q_camids[q_idx]
+        q_frame = frameQuery[q_idx]
+        oriQuery = orisQuerys[int(q_idx)]
+        # remove gallery samples that have the same pid and camid with query
+        order = indices[q_idx]
+        remove = g_camids[order] == q_camid
+
+        if q_camid < 10 :
+            if q_camid == 6:
+                remove = remove | ((abs(frameGallery[order] - q_frame) > 60) & (g_camids[order] == 9))
+            elif q_camid == 9:
+                remove = remove | ((abs(frameGallery[order] - q_frame) > 50) & (g_camids[order] == 6))
+        else:
+            cameras = [27, 28, 29, 33, 34, 35, 36]
+            distQG = q_frame - frameGallery[order]
+            for camera in cameras:
+                if camera == q_camid:
+                    continue
+                cameraGallery = camera
+                if oriQuery == 0:
+                    center = (distance1[q_camid - 1] - distance1[cameraGallery - 1]) * 10
+                else:
+                    center = (distance2[q_camid - 1] - distance2[cameraGallery - 1]) * 10
+                remove = remove | ((abs(distQG - center) > framegaps[q_camid - 1, cameraGallery - 1]) & (
+                            g_camids[order] == cameraGallery))
+            if oriQuery == 0:
+                remove = remove | (orisGallery == 1.0)
+            else:
+                remove = remove | (orisGallery == 0.0)
+
+        keep = np.invert(remove)
+        # compute cmc curve
+        # binary vector, positions with value 1 are correct matches
+        newdist[q_idx, :np.sum(keep)] = dist[q_idx][keep]
+
+    return newdist
+
+orisQuery = np.load('orisQuery.npy')
+orisGallery = np.load('orisGallery.npy')
+
+distmat = func_stamps(dist,  q_cams, g_cams, frameQuery, frameGallery, framegaps,
+                                   distance1, distance2,  orisQuery, orisGallery)
