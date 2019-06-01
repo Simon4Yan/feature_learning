@@ -11,8 +11,8 @@ This part is for learning feature extractor. The code is modified form [reid_bas
 `CUDA_VISIBLE_DEVICES=1 python3 tools/test.py --config_file='configs/softmax_triplet_VeRi.yml' TEST.WEIGHT './CHECKPOINTS/VeRi/softmax_triplet/XX.pth' MODEL.NAME 'densenet121' `
 
 - **Train and test on Aicity dataset**
-The dataloader is in *./data/datasets/VR.py*. 
 ###### Train
+The dataloader is in *./data/datasets/VR.py*.
 During the training, the test dataset is unavailable, we adopt the test dataset of Veri as the validation. This means that training a model on Aicity and testing it on Veri.
 `CUDA_VISIBLE_DEVICES=0 python3 tools/train.py --config_file='configs/softmax_triplet_VR.yml' MODEL.NAME 'densenet121' `
 ###### Test
