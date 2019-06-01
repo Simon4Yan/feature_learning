@@ -7,6 +7,7 @@ from .cuhk03 import CUHK03
 from .dukemtmcreid import DukeMTMCreID
 from .market1501 import Market1501
 from .VR import VR
+from .VR_test import VR_test
 from .VeRi import VeRi
 from .dataset_loader import ImageDataset
 
