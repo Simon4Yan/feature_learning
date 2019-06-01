@@ -50,5 +50,4 @@ pca=PCA(n_components=1024)
 gf_new = pca.fit_transform(gf)
 qf_new = pca.transform(qf)
 '''
-
 np.save('./data/gf_multi.npy', gf)
