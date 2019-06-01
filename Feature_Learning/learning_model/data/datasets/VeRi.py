@@ -1,7 +1,7 @@
 # encoding: utf-8
 """
-@author:  sherlock
-@contact: sherlockliao01@gmail.com
+@author:  weijian
+@contact: dengwj16@gmail.com
 """
 
 import glob
@@ -14,11 +14,9 @@ from .bases import BaseImageDataset
 
 class VeRi(BaseImageDataset):
     """
-    VR
+    
+    VeRi
 
-    Dataset statistics:
-    # identities: 1501 (+1 for background)
-    # images: 12936 (train) + 3368 (query) + 15913 (gallery)
     """
     dataset_dir = 'VeRi'
     dataset_dir_test = './data/VeRi'
@@ -59,37 +57,10 @@ class VeRi(BaseImageDataset):
         if not osp.exists(self.gallery_dir):
             raise RuntimeError("'{}' is not available".format(self.gallery_dir))
 
-    def _process_dir(self, dir_path, relabel=False):
-        #img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
-        #pattern = re.compile(r'([-\d]+)_c(\d)')
-        xml_dir =osp.join('./data/VR', 'train_label.xml')
-        info = XD.parse(xml_dir).documentElement.getElementsByTagName('Item')
-        
-        pid_container = set()       
-        for element in range(len(info)):
-            pid = int(info[element].getAttribute('vehicleID'))
-            if pid == -1: continue  # junk images are just ignored
-            pid_container.add(pid)
-        pid2label = {pid: label for label, pid in enumerate(pid_container)}       
-        
-        dataset = []
-        for element in range(len(info)):
-            pid, camid = map(int, [info[element].getAttribute('vehicleID'), info[element].getAttribute('cameraID')[1:]])
-            image_name = str(info[element].getAttribute('imageName'))
-            if pid == -1: continue  # junk images are just ignored
-            assert 0 <= pid <= 1501  # pid == 0 means background
-            assert 1 <= camid <= 40
-            camid -= 1  # index starts from 0
-            if relabel: pid = pid2label[pid]
-            dataset.append((osp.join(dir_path, image_name), pid, camid))
-
-        return dataset
-        
+       
     def _process_dir_test(self, dir_path, relabel=False):
         img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
-        #img_paths = glob.glob(osp.join('./image_query/', '*.jpg'))
         pattern = re.compile(r'([-\d]+)_c(\d\d\d)')
-        #pattern = re.compile(r'([-\d]+)_c(\d)')
         pid_container = set()
         for img_path in img_paths:
             pid, _ = map(int, pattern.search(img_path).groups())
@@ -101,8 +72,6 @@ class VeRi(BaseImageDataset):
         for img_path in img_paths:
             pid, camid = map(int, pattern.search(img_path).groups())
             if pid == -1: continue  # junk images are just ignored
-            assert 0 <= pid <= 1501  # pid == 0 means background
-            #assert 1 <= camid <= 50
             camid -= 1  # index starts from 0
             if relabel: pid = pid2label[pid]
             dataset.append((img_path, pid, camid))

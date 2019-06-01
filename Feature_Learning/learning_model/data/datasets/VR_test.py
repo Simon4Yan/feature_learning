@@ -1,7 +1,7 @@
 # encoding: utf-8
 """
-@author:  sherlock
-@contact: sherlockliao01@gmail.com
+@author:  weijian
+@contact: dengwj16@gmail.com
 """
 
 import glob
@@ -14,27 +14,24 @@ from .bases import BaseImageDataset
 
 class VR_test(BaseImageDataset):
     """
-    VR
+    VR_test
 
     Dataset statistics:
 
     """
     dataset_dir = 'VR'
-    dataset_dir_test = './data/VeRi'
+    dataset_dir_test = './data/VR'
 
     def __init__(self, root='./data', verbose=True, **kwargs):
         super(VR_test, self).__init__()
         self.dataset_dir = osp.join(root, self.dataset_dir)
         self.train_dir = osp.join(self.dataset_dir, 'image_train/')
-        #self.query_dir = osp.join(self.dataset_dir_test, 'image_query/')
-        #self.gallery_dir = osp.join(self.dataset_dir_test, 'image_test/')
-        self.query_dir = osp.join(self.dataset_dir, 'image_query_det/')
-        self.gallery_dir = osp.join(self.dataset_dir, 'image_test/')
+        self.query_dir = osp.join(self.dataset_dir_test, 'image_query/')
+        self.gallery_dir = osp.join(self.dataset_dir_test, 'image_test/')
+        
         self._check_before_run()
 
         train = self._process_dir(self.train_dir, relabel=True)
-        #query = self._process_dir_test(self.query_dir, relabel=False)
-        #gallery = self._process_dir_test(self.gallery_dir, relabel=False)
         query = self._process_dir_demo(self.query_dir, relabel=False)
         gallery = self._process_dir_demo(self.gallery_dir, relabel=False)
         if verbose:
@@ -61,8 +58,6 @@ class VR_test(BaseImageDataset):
             raise RuntimeError("'{}' is not available".format(self.gallery_dir))
 
     def _process_dir(self, dir_path, relabel=False):
-        #img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
-        #pattern = re.compile(r'([-\d]+)_c(\d)')
         xml_dir =osp.join('./data/VR', 'train_label.xml')
         info = XD.parse(xml_dir).documentElement.getElementsByTagName('Item')
         
@@ -77,48 +72,18 @@ class VR_test(BaseImageDataset):
         for element in range(len(info)):
             pid, camid = map(int, [info[element].getAttribute('vehicleID'), info[element].getAttribute('cameraID')[1:]])
             image_name = str(info[element].getAttribute('imageName'))
-            if pid == -1: continue  # junk images are just ignored
-            assert 0 <= pid <= 1501  # pid == 0 means background
-            assert 1 <= camid <= 40
             camid -= 1  # index starts from 0
             if relabel: pid = pid2label[pid]
             dataset.append((osp.join(dir_path, image_name), pid, camid))
 
         return dataset
         
-    def _process_dir_test(self, dir_path, relabel=False):
-        img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
-        #img_paths = glob.glob(osp.join('./image_query/', '*.jpg'))
-        pattern = re.compile(r'([-\d]+)_c(\d\d\d)')
-        #pattern = re.compile(r'([-\d]+)_c(\d)')
-        pid_container = set()
-        for img_path in img_paths:
-            pid, _ = map(int, pattern.search(img_path).groups())
-            if pid == -1: continue  # junk images are just ignored
-            pid_container.add(pid)
-        pid2label = {pid: label for label, pid in enumerate(pid_container)}
-
-        dataset = []
-        for img_path in img_paths:
-            pid, camid = map(int, pattern.search(img_path).groups())
-            if pid == -1: continue  # junk images are just ignored
-            assert 0 <= pid <= 1000  # pid == 0 means background
-            assert 1 <= camid <= 36
-            camid -= 1  # index starts from 0
-            if relabel: pid = pid2label[pid]
-            dataset.append((img_path, pid, camid))
-
-        return dataset
         
     def _process_dir_demo(self, dir_path, relabel=False):
         img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
         img_paths.sort()
-        #img_paths = glob.glob(osp.join('./image_query/', '*.jpg'))
-        #pattern = re.compile(r'([-\d]+)_c(\d\d\d)')
-        #pattern = re.compile(r'([-\d]+)_c(\d)')
         pid_container = set()
         for img_path in img_paths:
-            #pid, _ = map(int, pattern.search(img_path).groups())
             pid = 1
             if pid == -1: continue  # junk images are just ignored
             pid_container.add(pid)
@@ -126,11 +91,8 @@ class VR_test(BaseImageDataset):
 
         dataset = []
         for img_path in img_paths:
-            #pid, camid = map(int, pattern.search(img_path).groups())
             pid, camid = 1, 2
             if pid == -1: continue  # junk images are just ignored
-            assert 0 <= pid <= 1000  # pid == 0 means background
-            assert 1 <= camid <= 36
             camid -= 1  # index starts from 0
             if relabel: pid = pid2label[pid]
             dataset.append((img_path, pid, camid))

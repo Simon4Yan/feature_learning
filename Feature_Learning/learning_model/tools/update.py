@@ -48,10 +48,9 @@ def extract_feature(model, dataloaders, num_query):
     features = []
     count = 0
     img_path = []
-    img_cam = []
-    img_id = []
+
     for data in dataloaders:
-        img, pids, camids = data
+        img, _, _ = data
         n, c, h, w = img.size()
         count += n
         ff = torch.FloatTensor(n, 1024).zero_().cuda() # 2048 is pool5 of resnet
@@ -66,19 +65,13 @@ def extract_feature(model, dataloaders, num_query):
         fnorm = torch.norm(ff, p=2, dim=1, keepdim=True)
         ff = ff.div(fnorm.expand_as(ff))
         features.append(ff)
-        img_cam.extend(np.asarray(camids))
-        img_id.extend(np.asarray(pids))
     features = torch.cat(features, 0)   
     
     # query
     qf = features[:num_query]
-    q_pids = np.asarray(img_id[:num_query])
-    q_camids = np.asarray(img_cam[:num_query])
     # gallery
     gf = features[num_query:]
-    g_pids = np.asarray(img_id[num_query:])
-    g_camids = np.asarray(img_cam[num_query:])
-    return qf, q_pids, q_camids, gf, g_pids, g_camids
+    return qf, gf
 
 def main():
     parser = argparse.ArgumentParser(description="ReID Baseline Inference")
@@ -123,31 +116,18 @@ def main():
     logger = logging.getLogger("reid_baseline.inference")
     logger.info("Start inferencing")
     with torch.no_grad():
-        qf, q_pids, q_camids, gf, g_pids, g_camids = extract_feature(model, val_loader, num_query)
-    m, n = qf.shape[0], gf.shape[0]
-    distmat = torch.pow(qf, 2).sum(dim=1, keepdim=True).expand(m, n) + \
-                  torch.pow(gf, 2).sum(dim=1, keepdim=True).expand(n, m).t()
-    distmat.addmm_(1, -2, qf, gf.t())
-    distmat = distmat.cpu().numpy()
-
-    cmc, mAP = eval_func(distmat, q_pids, g_pids, q_camids, g_camids)
-    logger.info('Validation Results')
-    logger.info("mAP: {:.1%}".format(mAP))
-    for r in [1, 5, 10]:
-        logger.info("CMC curve, Rank-{:<3}:{:.1%}".format(r, cmc[r - 1]))
-
-    logger.info("Start reranking...")     
+        qf, gf = extract_feature(model, val_loader, num_query)
+    
+    # save feature
+    np.save('../data/feature_expansion/qf_ori', qf.cpu().numpy())
+    np.save('../data/feature_expansion/gf_ori', gf.cpu().numpy())
+    '''
     q_g_dist = np.dot(qf.cpu().numpy(), np.transpose(gf.cpu().numpy()))
     q_q_dist = np.dot(qf.cpu().numpy(), np.transpose(qf.cpu().numpy()))
     g_g_dist = np.dot(gf.cpu().numpy(), np.transpose(gf.cpu().numpy()))
       
     re_rank_dist = re_ranking(q_g_dist, q_q_dist, g_g_dist)
-    cmc, mAP = eval_func(re_rank_dist, q_pids, g_pids, q_camids, g_camids)
-    
-    logger.info('Validation Results Re-ranking')
-    logger.info("mAP: {:.1%}".format(mAP))
-    for r in [1, 5, 10]:
-        logger.info("CMC curve, Rank-{:<3}:{:.1%}".format(r, cmc[r - 1]))
+    '''
     
 if __name__ == '__main__':
     main()

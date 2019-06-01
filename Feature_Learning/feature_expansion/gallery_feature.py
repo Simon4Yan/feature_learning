@@ -22,7 +22,7 @@ gf = np.load('./data/gf_ori.npy')
 
 # tracklet name with ID
 track_name = []
-f = open('test_track_id.txt', 'r')
+f = open('./data/test_track_id.txt', 'r')
 for k, line in enumerate(f):
     temp = list(map(int, line.split(' ')[:-1]))
     track_name.append(list(map(lambda x: x-1, temp)))

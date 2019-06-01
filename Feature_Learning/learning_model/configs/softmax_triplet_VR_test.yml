@@ -9,7 +9,7 @@ INPUT:
   PADDING: 10
 
 DATASETS:
-  NAMES: ('VeRi')
+  NAMES: ('VR_test')
 
 DATALOADER:
   SAMPLER: 'softmax_triplet'
@@ -40,6 +40,6 @@ TEST:
   IMS_PER_BATCH: 256
   WEIGHT: "path"
 
-OUTPUT_DIR: "./CHECKPOINTS/VR/softmax_triplet_LSR"
+OUTPUT_DIR: "./CHECKPOINTS/VR/softmax_triplet_LSR_VeRi_test"
 
 

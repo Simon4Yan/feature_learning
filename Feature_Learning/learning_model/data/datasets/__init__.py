@@ -15,6 +15,7 @@ __factory = {
     'cuhk03': CUHK03,
     'dukemtmc': DukeMTMCreID,
     'VR': VR,
+    'VR_test': VR_test,
     'VeRi': VeRi,
 }
 
