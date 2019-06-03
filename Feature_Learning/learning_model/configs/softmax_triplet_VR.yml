@@ -7,7 +7,8 @@ INPUT:
   SIZE_TEST: [256, 256]
   PROB: 0.5 # random horizontal flip
   PADDING: 10
-
+  COLORJITTER: False  # for model ensemble
+  
 DATASETS:
   NAMES: ('VR')
 
@@ -15,6 +16,7 @@ DATALOADER:
   SAMPLER: 'softmax_triplet'
   NUM_INSTANCE: 4
   NUM_WORKERS: 2
+  SOFT_MARGIN: False # for model ensemble
 
 SOLVER:
   OPTIMIZER_NAME: 'SGD'

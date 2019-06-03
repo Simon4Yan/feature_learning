@@ -7,7 +7,8 @@ INPUT:
   SIZE_TEST: [256, 256]
   PROB: 0.5 # random horizontal flip
   PADDING: 10
-
+  COLORJITTER: False  # for model ensemble
+  
 DATASETS:
   NAMES: ('VR_test')
 
@@ -15,6 +16,7 @@ DATALOADER:
   SAMPLER: 'softmax_triplet'
   NUM_INSTANCE: 4
   NUM_WORKERS: 2
+  SOFT_MARGIN: False # for model ensemble
 
 SOLVER:
   OPTIMIZER_NAME: 'SGD'
@@ -39,7 +41,9 @@ SOLVER:
 TEST:
   IMS_PER_BATCH: 256
   WEIGHT: "path"
-
+  QF_NAME: "qf_ori"
+  GF_NAME: "gf_ori"
+  
 OUTPUT_DIR: "./CHECKPOINTS/VR/softmax_triplet_LSR_VeRi_test"
 
 

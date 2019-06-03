@@ -37,6 +37,8 @@ _C.INPUT.PIXEL_MEAN = [0.485, 0.456, 0.406]
 _C.INPUT.PIXEL_STD = [0.229, 0.224, 0.225]
 # Value of padding size
 _C.INPUT.PADDING = 10
+# COLORJITTER
+_C.INPUT.COLORJITTER = False
 
 # -----------------------------------------------------------------------------
 # Dataset
@@ -55,6 +57,8 @@ _C.DATALOADER.NUM_WORKERS = 8
 _C.DATALOADER.SAMPLER = 'softmax'
 # Number of instance for one batch
 _C.DATALOADER.NUM_INSTANCE = 16
+# SOFT_MARGIN
+_C.DATALOADER.SOFT_MARGIN = False
 
 # ---------------------------------------------------------------------------- #
 # Solver
@@ -94,7 +98,8 @@ _C.SOLVER.IMS_PER_BATCH = 64
 _C.TEST = CN()
 _C.TEST.IMS_PER_BATCH = 128
 _C.TEST.WEIGHT = ""
-
+_C.TEST.QF_NAME = ""
+_C.TEST.GF_NAME = ""
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #

@@ -119,8 +119,9 @@ def main():
         qf, gf = extract_feature(model, val_loader, num_query)
     
     # save feature
-    np.save('../data/feature_expansion/qf_ori', qf.cpu().numpy())
-    np.save('../data/feature_expansion/gf_ori', gf.cpu().numpy())
+    np.save('../data/feature_expansion/' + cfg.TEST.QF_NAME, qf.cpu().numpy())
+    np.save('../data/feature_expansion/' + cfg.TEST.GF_NAME, gf.cpu().numpy())
+    
     '''
     q_g_dist = np.dot(qf.cpu().numpy(), np.transpose(gf.cpu().numpy()))
     q_q_dist = np.dot(qf.cpu().numpy(), np.transpose(qf.cpu().numpy()))

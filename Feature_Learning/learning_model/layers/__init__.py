@@ -12,7 +12,10 @@ from .GHMC_Loss import GHMC_Loss
 
 def make_loss(cfg):
     sampler = cfg.DATALOADER.SAMPLER
-    triplet = TripletLoss(cfg.SOLVER.MARGIN) 
+    if cfg.DATALOADER.SOFT_MARGIN:
+        triplet = TripletLoss()
+    else:
+        triplet = TripletLoss(cfg.SOLVER.MARGIN) 
     lsr_loss = LSR()
     G_Loss = GHMC_Loss()
     if sampler == 'softmax':
