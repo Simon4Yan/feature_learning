@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 
+"""
+Created on Sat Apr 27 15:03:13 2019
+
+@author: Lv
+"""
+
 import numpy as np
+import copy
 
 
 # frame inforamtion
-frameQuery = np.load('frameQuery.npy')
-frameTracklets  = np.load('frameGallery.npy')
-frameGallery = np.zeros([18290])
-
+frameQuery = np.load('./stamp/frameQuery.npy')
+frameTracklets  = np.load('./stamp/frameGallery.npy')
+frameGallery = np.zeros([18290]) #18290 is the num of gallery images
 
 # tracklet name with ID
 g_name = []
-f = open('test_track_id.txt', 'r')
+f = open('./data/test_track_id.txt', 'r')
 for k, line in enumerate(f):
-    print(k)
     temp = list(map(int, line.split(' ')[:-1]))
     if len(temp)==1:
         continue
@@ -22,14 +27,17 @@ for k, line in enumerate(f):
         frameGallery[idTemp-1] = frameTracklets[k]
 f.close
 
-
-
 # camera inforamation
-q_cams = np.load('q_cams.npy')
-g_cams = np.load('gallery_camera_inf.npy')
+q_cams = np.load('./stamp/q_cams.npy')
+g_cams = np.load('./stamp/gallery_camera_inf.npy')
 
-dist = np.load('distmat.npy')
+# distance matrix
+qf = np.load('./data/qf_new.npy')
+gf = np.load('./data/gf_multi.npy')
+distori = np.dot(qf, np.transpose(gf))
+distori = 2. - 2 * distori  # change the cosine similarity metric to euclidean similarity metric
 
+distmat = copy.deepcopy(distori)
 
 distance1 = np.zeros(36)
 distance1[27-1] = 0
@@ -39,7 +47,6 @@ distance1[33-1] = 60
 distance1[34-1] = 76
 distance1[35-1] = 84
 distance1[36-1] = 90
-
 
 distance2 = np.zeros(36)
 distance2[27-1] = 94
@@ -59,8 +66,12 @@ framegaps[33,:]= 170
 framegaps[34,:]= 130
 framegaps[35,:]= 120
 
-def func_stamps(dist,  q_camids, g_camids, frameQuery, frameGallery, framegaps,
-                                   distance1, distance2, orisQuerys, orisGallerys, max_rank=50):
+orisQuery = np.load('./stamp/orisQuery.npy')
+orisGallery = np.load('./stamp/orisGallery.npy')
+
+def func_stamps(distmat,  q_camids, g_camids, frameQuery, frameGallery, framegaps,
+                                   distance1, distance2, orisQuerys, orisGallerys, max_rank=100):
+    
     num_q, num_g = distmat.shape
     newdist = np.zeros([num_q, num_g])
     if num_g < max_rank:
@@ -98,16 +109,35 @@ def func_stamps(dist,  q_camids, g_camids, frameQuery, frameGallery, framegaps,
                 remove = remove | (orisGallery == 1.0)
             else:
                 remove = remove | (orisGallery == 0.0)
-
+        # filter retrieve results
         keep = np.invert(remove)
-        # compute cmc curve
-        # binary vector, positions with value 1 are correct matches
-        newdist[q_idx, :np.sum(keep)] = dist[q_idx][keep]
+        newdist[q_idx, :np.sum(keep)] = distmat[q_idx][keep]
+        distmat[q_idx][remove] = 2 # set distance to max number
+   
+    return distmat
 
-    return newdist
-
-orisQuery = np.load('orisQuery.npy')
-orisGallery = np.load('orisGallery.npy')
-
-distmat = func_stamps(dist,  q_cams, g_cams, frameQuery, frameGallery, framegaps,
+# fliter retrieve results by using location and time stamps
+dist = func_stamps(distmat,  q_cams, g_cams, frameQuery, frameGallery, framegaps,
                                    distance1, distance2,  orisQuery, orisGallery)
+
+# location information
+g_index_s05 = np.load('./stamp/g_index_s05.npy')
+q_index_s05 = np.load('./stamp/q_index_s05.npy')
+
+q_index = np.load('./stamp/q_index_s02.npy')
+g_index = np.load('./stamp/g_index_s02.npy')
+
+# scene filter for S02
+g_indice_scene = g_index_s05 #S05 indice
+for i in range(len(q_index)):
+    key = q_index[i]
+    dist[key][g_indice_scene] = 2
+
+# scene filter for S05
+g_indice_scene = g_index #S02 indice
+s05_indice =  q_index_s05
+for i in range(len(s05_indice)):
+    key = s05_indice[i]
+    dist[key][g_indice_scene] = 2
+# save results                                   
+np.save('./results/distmat_after.npy', dist)
